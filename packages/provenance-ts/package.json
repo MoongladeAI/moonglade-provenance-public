@@ -1,0 +1,73 @@
+{
+  "name": "@moonglade/provenance",
+  "version": "2.5.0",
+  "description": "Local-first cryptographic proof for markdown files and agentic AI memory substrates.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "provenance": "dist/artifact-cli.js",
+    "provenance-gate": "dist/mcp.js",
+    "provenance-artifact": "dist/artifact-cli.js"
+  },
+  "scripts": {
+    "build": "node clean-build.cjs && tsc",
+    "test": "npm run build && jest --runInBand",
+    "self-test": "node dist/artifact-cli.js test",
+    "prepublishOnly": "npm run build",
+    "test:only": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoongladeAI/moonglade-provenance-public.git"
+  },
+  "keywords": [
+    "provenance",
+    "ai",
+    "agentic",
+    "merkle",
+    "rfc3161",
+    "ed25519",
+    "mcp",
+    "moonglade"
+  ],
+  "author": "Moonglade AI",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "README.md",
+    "SPEC.md",
+    "TIMESTAMP.md",
+    "LICENSE",
+    "NOTICE.md",
+    "trust"
+  ],
+  "homepage": "https://github.com/MoongladeAI/moonglade-provenance-public#readme",
+  "bugs": {
+    "url": "https://github.com/MoongladeAI/moonglade-provenance-public/issues"
+  },
+  "devDependencies": {
+    "@types/jest": "30.0.0",
+    "@types/node": "22.20.4",
+    "jest": "30.5.2",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "asn1js": "3.0.10",
+    "pkijs": "3.4.1"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

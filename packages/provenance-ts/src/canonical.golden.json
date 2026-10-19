@@ -1,0 +1,26 @@
+[
+  {
+    "name": "BOM_CRLF_NFC",
+    "filename": "doc.md",
+    "input_hex": "efbbbf63616665cc810d0a",
+    "output_hex": "636166c3a90a"
+  },
+  {
+    "name": "bare_CR",
+    "filename": "doc.md",
+    "input_hex": "610d62",
+    "output_hex": "610d62"
+  },
+  {
+    "name": "binary",
+    "filename": "doc.bin",
+    "input_hex": "ff0d0a00",
+    "output_hex": "ff0d0a00"
+  },
+  {
+    "name": "invalid_UTF8",
+    "filename": "doc.md",
+    "input_hex": "61ff62",
+    "error": true
+  }
+]

@@ -1,0 +1,1 @@
+const fs=require('node:fs'),path=require('node:path');const root=path.resolve(__dirname,'dist');if(path.dirname(root)!==__dirname)throw Error('Unsafe build path');fs.rmSync(root,{recursive:true,force:true});

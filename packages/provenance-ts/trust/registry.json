@@ -1,0 +1,12 @@
+{
+  "format": "moonglade-release-trust-v1",
+  "status": "unsigned-candidate",
+  "signers": [
+    {
+      "fingerprint": "5E7FA9F6C5B0A65BC23A75704FF2C2DE69C0C4A3",
+      "role": "root",
+      "public_key": "root-public.asc",
+      "architect_authority": true
+    }
+  ]
+}
