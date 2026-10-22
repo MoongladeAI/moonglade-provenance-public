@@ -381,7 +381,8 @@ describe('v3 generic claims and countersigning', () => {
       focal_length_mm: 85,
       verified: true,
       tags: ['raw', 'caribbean', 'portrait'],
-      exif: { iso: 100, aperture: 1.8 }
+      // draft -03 section 3.3: claims numbers are safe integers, so a decimal travels as a string
+      exif: { iso: 100, aperture: '1.8' }
     };
 
     const sc = await ProvenanceEngine.sealDocument(p, keys1.privateKey, 'artist@moonglade', 'git123', {

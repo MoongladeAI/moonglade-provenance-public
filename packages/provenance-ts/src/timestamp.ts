@@ -36,7 +36,10 @@ export interface DTAOptions {
   /** If specified, restricts queries to this tier only */
   specifiedTier?: 'L1_CRYPTO_PRIMARY' | 'L2_CRYPTO_FALLBACK' | 'L3_NETWORK_CONSENSUS' | 'L4_HOST_UNAUTHENTICATED';
 
-  /** Number of probes to simultaneously seek from each tier (default: 1) */
+  /**
+   * Number of probes to simultaneously seek from each tier (default: 1 for the TSA tiers,
+   * min(3, distinct hosts) for the L3 network tier, because one probe can never reach quorum)
+   */
   probesPerTier?: number;
 
   /** Whether to rotate through available endpoints (default: true) */
@@ -50,6 +53,15 @@ export interface DTAOptions {
   nonce?: Buffer | bigint;
   circuitBreaker?: EndpointCircuitBreaker;
   maxParallelProbes?: number; // legacy alias for probesPerTier
+
+  /**
+   * Distinct agreeing network hosts needed for L3_NETWORK_CONSENSUS (default 2). A single host
+   * is never L3 unless this is explicitly set to 1.
+   */
+  quorumThreshold?: number;
+
+  /** Maximum spread between the earliest and latest L3 probe, in milliseconds (default 3000). */
+  maxDriftMs?: number;
 }
 
 export interface TierEndpointConfig {
@@ -81,7 +93,9 @@ export const TIER_CONFIGS: {
   L3: {
     default: 'cloudflare.com',
     fallbacks: [
-      'google.com'
+      'google.com',
+      'apple.com',
+      'amazon.com'
     ]
   }
 };
@@ -825,8 +839,69 @@ export async function probeTsa(
   }
 }
 
+const HTTP_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const HTTP_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const HTTP_DAYS_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const IMF_FIXDATE = /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat), (\d{2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4}) (\d{2}):(\d{2}):(\d{2}) GMT$/;
+const RFC850_DATE = /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d{2}) (\d{2}):(\d{2}):(\d{2}) GMT$/;
+const ASCTIME_DATE = /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) ([ \d]\d) (\d{2}):(\d{2}):(\d{2}) (\d{4})$/;
+
 /**
- * Probe network time via HTTP Date header.
+ * Parse an RFC 7231 section 7.1.1.1 HTTP-date: IMF-fixdate, or the obsolete RFC 850 and asctime
+ * forms a recipient must still accept. The grammar is case-sensitive, the day name must agree
+ * with the date, and the date must exist (no 31 February, no 24:00:00, no leap second).
+ * Returns epoch milliseconds, or null for anything else - including ISO-8601 and bare numbers
+ * that `new Date(...)` would happily accept.
+ */
+export function parseHttpDate(value: string, now: number = Date.now()): number | null {
+  if (typeof value !== 'string') return null;
+  let dayName: string | undefined;
+  let day: number, month: number, year: number, hh: number, mm: number, ss: number;
+  let long = false;
+  let m = IMF_FIXDATE.exec(value);
+  if (m) {
+    dayName = m[1]; day = +m[2]!; month = HTTP_MONTHS.indexOf(m[3]!); year = +m[4]!;
+    hh = +m[5]!; mm = +m[6]!; ss = +m[7]!;
+  } else if ((m = RFC850_DATE.exec(value))) {
+    long = true;
+    dayName = m[1]; day = +m[2]!; month = HTTP_MONTHS.indexOf(m[3]!);
+    year = 2000 + +m[4]!;
+    // RFC 7231: a two-digit year more than 50 years in the future means the past century.
+    if (year > new Date(now).getUTCFullYear() + 50) year -= 100;
+    hh = +m[5]!; mm = +m[6]!; ss = +m[7]!;
+  } else if ((m = ASCTIME_DATE.exec(value))) {
+    dayName = m[1]; month = HTTP_MONTHS.indexOf(m[2]!); day = +m[3]!.trim();
+    hh = +m[4]!; mm = +m[5]!; ss = +m[6]!; year = +m[7]!;
+  } else {
+    return null;
+  }
+  if (hh > 23 || mm > 59 || ss > 59 || day < 1) return null;
+  const d = new Date(0);
+  d.setUTCFullYear(year, month, day);
+  d.setUTCHours(hh, mm, ss, 0);
+  if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month || d.getUTCDate() !== day) return null;
+  const expected = (long ? HTTP_DAYS_LONG : HTTP_DAYS)[d.getUTCDay()];
+  if (dayName !== expected) return null;
+  return d.getTime();
+}
+
+/** Identity of a network time source for de-duplication: scheme, path, case and trailing dot ignored. */
+function normalizeNetworkHost(host: string): string {
+  return host.trim().toLowerCase().replace(/^[a-z][a-z0-9+.-]*:\/\//, '').replace(/\/.*$/, '').replace(/\.+$/, '');
+}
+
+function uniqueNetworkHosts(hosts: string[]): string[] {
+  const seen = new Set<string>();
+  return hosts.filter(h => {
+    const key = normalizeNetworkHost(h);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * Probe network time via HTTP Date header. The header must be an RFC 7231 HTTP-date.
  */
 export function probeNetworkTime(host: string, timeoutMs = 3000): Promise<TSAProbeResult> {
   return new Promise((resolve) => {
@@ -836,15 +911,15 @@ export function probeNetworkTime(host: string, timeoutMs = 3000): Promise<TSAPro
       timeout: timeoutMs
     }, (res) => {
       const dateStr = res.headers['date'];
-      if (dateStr) {
-        const parsed = new Date(dateStr);
-        if (!isNaN(parsed.getTime())) {
+      if (typeof dateStr === 'string') {
+        const ms = parseHttpDate(dateStr);
+        if (ms !== null) {
           resolve({
             tier: 'L3_NETWORK_CONSENSUS',
             method: 'HTTP_DATE',
             server: host,
             status: 'SUCCESS',
-            timestamp_iso: parsed.toISOString()
+            timestamp_iso: new Date(ms).toISOString()
           });
           return;
         }
@@ -878,6 +953,76 @@ export function probeNetworkTime(host: string, timeoutMs = 3000): Promise<TSAPro
     });
     req.end();
   });
+}
+
+/**
+ * Evaluates whether successful L3 network probes form a Byzantine-tolerant quorum.
+ * Requirements:
+ * 1. At least 2 successful HTTP Date probes (or >= quorumThreshold).
+ * 2. Absolute time drift between min and max probe timestamps is within maxDriftMs (default: 3000ms).
+ * Returns the median timestamp and participating servers if quorum is reached, otherwise null.
+ */
+export function resolveNetworkConsensus(
+  probes: TSAProbeResult[],
+  quorumThreshold = 2,
+  maxDriftMs = 3000
+): { consensusTime: string; server: string } | null {
+  // Configuration fails closed. Only a number >= 1 can lower or raise the default quorum of 2, and a
+  // fraction rounds UP; 0, negatives, NaN and non-numbers leave the default, and Infinity can never be
+  // met. A single host therefore reaches L3 only when the caller asks for exactly 1.
+  let quorum = 2;
+  if (typeof quorumThreshold === 'number' && quorumThreshold >= 1) {
+    if (!Number.isFinite(quorumThreshold)) return null;
+    quorum = Math.ceil(quorumThreshold);
+  }
+  // A NaN, negative, infinite or non-numeric drift limit must not disable the drift check.
+  const driftLimit = typeof maxDriftMs === 'number' && Number.isFinite(maxDriftMs) && maxDriftMs >= 0 ? maxDriftMs : 3000;
+  // A quorum counts distinct sources. The same host listed twice (or spelled two ways) is one
+  // participant, so repeating a server cannot manufacture agreement; its first answer is kept.
+  const distinct = new Map<string, TSAProbeResult>();
+  for (const p of probes) {
+    if (p.tier !== 'L3_NETWORK_CONSENSUS' || p.status !== 'SUCCESS' || !p.timestamp_iso) continue;
+    if (typeof p.server !== 'string') continue;
+    const key = normalizeNetworkHost(p.server);
+    if (key && !distinct.has(key)) distinct.set(key, p);
+  }
+  const successful = [...distinct.values()];
+
+  if (successful.length < quorum) {
+    return null;
+  }
+
+  const times = successful
+    .map(p => ({
+      server: p.server,
+      iso: p.timestamp_iso!,
+      ms: new Date(p.timestamp_iso!).getTime()
+    }))
+    .filter(t => !isNaN(t.ms));
+
+  if (times.length < quorum) {
+    return null;
+  }
+
+  times.sort((a, b) => a.ms - b.ms);
+
+  const minTime = times[0]!.ms;
+  const maxTime = times[times.length - 1]!.ms;
+  const drift = Math.abs(maxTime - minTime);
+
+  if (drift > driftLimit) {
+    return null;
+  }
+
+  // Median selection
+  const mid = Math.floor(times.length / 2);
+  const median = times[mid]!;
+  const serverList = times.map(t => t.server).join('+');
+
+  return {
+    consensusTime: median.iso,
+    server: `consensus(${serverList})`
+  };
 }
 
 /**
@@ -927,13 +1072,16 @@ export async function concurrentDegradingTimestamp(
         probes: allProbes
       };
     } else {
+      // One host cannot form a quorum. It is L3 only if the caller explicitly lowers the
+      // threshold to 1; otherwise the probe is kept as evidence and the result is L4.
       const probe = await probeNetworkTime(s, timeoutMs);
       const allProbes = [probe, hostProbe];
-      if (probe.status === 'SUCCESS') {
+      const single = resolveNetworkConsensus([probe], options.quorumThreshold ?? 2, options.maxDriftMs ?? 3000);
+      if (single) {
         return {
           tier: 'L3_NETWORK_CONSENSUS',
-          tsa: probe.server,
-          tsa_time: probe.timestamp_iso!,
+          tsa: single.server,
+          tsa_time: single.consensusTime,
           probes: allProbes
         };
       }
@@ -961,7 +1109,8 @@ export async function concurrentDegradingTimestamp(
 
   const primaryPool = options.primaryEndpoints || DEFAULT_PRIMARY_TSAS;
   const fallbackPool = options.fallbackEndpoints || DEFAULT_FALLBACK_TSAS;
-  const networkHosts = options.networkEndpoints || DEFAULT_NETWORK_HOSTS;
+  const networkHosts = uniqueNetworkHosts(options.networkEndpoints || DEFAULT_NETWORK_HOSTS);
+  const networkProbes = options.probesPerTier ?? options.maxParallelProbes ?? Math.min(3, networkHosts.length);
 
   const probePromises: Promise<TSAProbeResult>[] = [];
 
@@ -981,8 +1130,8 @@ export async function concurrentDegradingTimestamp(
 
   if (!options.specifiedTier || options.specifiedTier === 'L3_NETWORK_CONSENSUS') {
     const selectedNetwork = rotate
-      ? cb.selectRotatingEndpoints(networkHosts, probesPerTier, 'L3_NETWORK')
-      : cb.selectEndpoints(networkHosts, probesPerTier);
+      ? cb.selectRotatingEndpoints(networkHosts, networkProbes, 'L3_NETWORK')
+      : cb.selectEndpoints(networkHosts, networkProbes);
     probePromises.push(...selectedNetwork.map(host => probeNetworkTime(host, Math.min(timeoutMs, 3000))));
   }
 
@@ -1014,12 +1163,12 @@ export async function concurrentDegradingTimestamp(
     };
   }
 
-  const successfulL3 = results.find(p => p.tier === 'L3_NETWORK_CONSENSUS' && p.status === 'SUCCESS');
-  if (successfulL3) {
+  const consensus = resolveNetworkConsensus(results, options.quorumThreshold ?? 2, options.maxDriftMs ?? 3000);
+  if (consensus) {
     return {
       tier: 'L3_NETWORK_CONSENSUS',
-      tsa: successfulL3.server,
-      tsa_time: successfulL3.timestamp_iso!,
+      tsa: consensus.server,
+      tsa_time: consensus.consensusTime,
       probes: allProbes
     };
   }

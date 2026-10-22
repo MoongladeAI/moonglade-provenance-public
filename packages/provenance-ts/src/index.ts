@@ -77,7 +77,7 @@ export const TEXT_EXTENSIONS = new Set([
 export const BINARY_EXTENSIONS = new Set([
   'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'ico',
   'mp4', 'mov', 'avi', 'mkv', 'webm', 'mp3', 'wav', 'flac', 'ogg',
-  'zip', 'tar', 'gz', 'bz2', '7z', 'rar', 'wasm', 'bin', 'exe', 'dll', 'so', 'dylib'
+  'zip', 'tar', 'gz', 'bz2', '7z', 'rar', 'wasm', 'bin', 'exe', 'dll', 'so', 'dylib', 'onnx'
 ]);
 
 /**
@@ -102,8 +102,9 @@ export function isTextContent(filename: string, bytes: Buffer | Uint8Array): boo
 }
 
 /**
- * Deterministic JSON Canonicalization Scheme (RFC 8785 subset for generic claims).
- * Sorts object keys lexicographically by UTF-16 code units with no whitespace.
+ * Deterministic JSON Canonicalization Scheme (RFC 8785 subset for generic claims, draft -03 section 3.3).
+ * Sorts object keys lexicographically by UTF-16 code units with no whitespace. Numbers must be safe
+ * integers; floats, NaN, Infinity and lone surrogates are rejected, exactly as in the Python and Rust engines.
  */
 export function canonicalizeJson(value: any): string {
   const seen = new Set<object>();
@@ -122,7 +123,12 @@ export function canonicalizeJson(value: any): string {
     if (v === null) return 'null';
     if (typeof v === 'string') return string(v);
     if (typeof v === 'boolean') return JSON.stringify(v);
-    if (typeof v === 'number' && Number.isFinite(v)) return JSON.stringify(v);
+    if (typeof v === 'number') {
+      // Draft -03 section 3.3: IEEE 754 integers within +-(2^53-1), judged by value, so 1.0 and 1e2 are
+      // accepted (as 1 and 100) and 1.5, 2^53, NaN and Infinity are not. -0 is emitted as 0.
+      if (!Number.isSafeInteger(v)) throw new Error('Claims numbers must be safe integers');
+      return JSON.stringify(v);
+    }
     if (typeof v !== 'object') throw new Error('Unsupported JSON value');
     if (seen.has(v)) throw new Error('Cyclic JSON');
     if (!Array.isArray(v) && Object.getPrototypeOf(v) !== Object.prototype && Object.getPrototypeOf(v) !== null) throw new Error('JSON requires plain objects');

@@ -23,7 +23,8 @@ const {
   DEFAULT_FALLBACK_TSAS,
   TIER_CONFIGS,
   DEFAULT_SERVER_POLICIES,
-  verifyTimeStampToken
+  verifyTimeStampToken,
+  resolveNetworkConsensus
 } = require('../dist/index.js');
 
 let tmp;
@@ -323,6 +324,78 @@ describe('Tier Defaults and Simultaneous/Targeted Seeking', () => {
 
     expect(TIER_CONFIGS.L3.default).toBe('cloudflare.com');
     expect(TIER_CONFIGS.L3.fallbacks).toContain('google.com');
+    expect(TIER_CONFIGS.L3.fallbacks).toContain('apple.com');
+    expect(TIER_CONFIGS.L3.fallbacks).toContain('amazon.com');
+  });
+
+  describe('resolveNetworkConsensus Quorum Algorithm', () => {
+    test('requires minimum quorum threshold of successful probes', () => {
+      const singleProbe = [
+        {
+          tier: 'L3_NETWORK_CONSENSUS',
+          method: 'HTTP_DATE',
+          server: 'cloudflare.com',
+          status: 'SUCCESS',
+          timestamp_iso: '2026-10-21T18:00:00.000Z'
+        }
+      ];
+      expect(resolveNetworkConsensus(singleProbe, 2)).toBeNull();
+    });
+
+    test('accepts quorum when probes agree within max drift tolerance and selects median', () => {
+      const probes = [
+        {
+          tier: 'L3_NETWORK_CONSENSUS',
+          method: 'HTTP_DATE',
+          server: 'cloudflare.com',
+          status: 'SUCCESS',
+          timestamp_iso: '2026-10-21T18:00:01.000Z'
+        },
+        {
+          tier: 'L3_NETWORK_CONSENSUS',
+          method: 'HTTP_DATE',
+          server: 'google.com',
+          status: 'SUCCESS',
+          timestamp_iso: '2026-10-21T18:00:00.000Z'
+        },
+        {
+          tier: 'L3_NETWORK_CONSENSUS',
+          method: 'HTTP_DATE',
+          server: 'apple.com',
+          status: 'SUCCESS',
+          timestamp_iso: '2026-10-21T18:00:02.000Z'
+        }
+      ];
+
+      const consensus = resolveNetworkConsensus(probes, 2, 3000);
+      expect(consensus).not.toBeNull();
+      // Median of 00s, 01s, 02s is 01s
+      expect(consensus.consensusTime).toBe('2026-10-21T18:00:01.000Z');
+      expect(consensus.server).toContain('cloudflare.com');
+      expect(consensus.server).toContain('google.com');
+      expect(consensus.server).toContain('apple.com');
+    });
+
+    test('rejects quorum and returns null when time drift exceeds threshold (spoofing protection)', () => {
+      const driftedProbes = [
+        {
+          tier: 'L3_NETWORK_CONSENSUS',
+          method: 'HTTP_DATE',
+          server: 'cloudflare.com',
+          status: 'SUCCESS',
+          timestamp_iso: '2026-10-21T18:00:00.000Z'
+        },
+        {
+          tier: 'L3_NETWORK_CONSENSUS',
+          method: 'HTTP_DATE',
+          server: 'rogue-proxy.com',
+          status: 'SUCCESS',
+          timestamp_iso: '2026-10-21T18:00:10.000Z' // 10s drift (> 3000ms)
+        }
+      ];
+
+      expect(resolveNetworkConsensus(driftedProbes, 2, 3000)).toBeNull();
+    });
   });
 
   test('simultaneously seeks 1 probe from each tier by default', async () => {

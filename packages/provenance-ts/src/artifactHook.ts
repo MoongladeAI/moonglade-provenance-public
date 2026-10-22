@@ -1,7 +1,5 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as crypto from 'crypto';
-import { spawn } from 'child_process';
 import { ProvenanceEngine, ProvenanceSidecar, readRegularFile, MAX_ARTIFACT_BYTES, writeSidecar } from './index';
 import { createArtifactEnvelope } from './artifactEnvelope';
 
@@ -15,7 +13,6 @@ export interface ArtifactHookOptions {
   generator?: { agent: string; model?: string; session?: string };
   parents?: string[];
   gitCommit?: string;
-  openPgpHome?: string;
 }
 
 export interface ArtifactHookResult {
@@ -87,33 +84,4 @@ export async function moveArtifactWithAttestation(sourcePath: string, destinatio
   try { await fs.unlink(source); }
   catch (error) { await fs.unlink(destination); throw error; }
   return { artifactPath: destination, attestationPath: destinationAttestation, attestationMoved: false };
-}
-
-function runGpg(args: string[], input: Buffer, env: NodeJS.ProcessEnv): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const child = spawn('gpg', args, { env, windowsHide: true });
-    const chunks: Buffer[] = []; const errors: Buffer[] = [];
-    child.stdout.on('data', c => chunks.push(Buffer.from(c))); child.stderr.on('data', c => errors.push(Buffer.from(c)));
-    child.on('error', reject); child.on('close', code => code === 0 ? resolve(Buffer.concat(chunks)) : reject(new Error(Buffer.concat(errors).toString('utf8') || `gpg exited ${code}`)));
-    child.stdin.end(input);
-  });
-}
-
-/** Seal canonical bytes with an OpenPGP keyring without exporting private key material. */
-export async function sealWithOpenPgp(filePath: string, opts: ArtifactHookOptions & { openPgpHome: string }): Promise<ProvenanceSidecar> {
-  // OpenPGP admission is byte-preserving for binary assets. Markdown sealing
-  // continues to use the text canonicalization path in ProvenanceEngine.
-  const canonical = await fs.readFile(filePath);
-  const hash = crypto.createHash('sha256').update(canonical).digest('hex');
-  const signature = await runGpg(['--homedir', opts.openPgpHome, '--batch', '--armor', '--detach-sign', '--output', '-', '--'], canonical, { ...process.env, GNUPGHOME: opts.openPgpHome });
-  const signer = opts.signerIdentity ?? 'unknown OpenPGP signer';
-  const sidecar: ProvenanceSidecar = {
-    standard: 'Moonglade Provenance Attestation Bundle v2', artifact: path.basename(filePath),
-    attestations: [{ method: 'openpgp', signer, scope: ProvenanceEngine.scopeFor(filePath, opts.vaultRoot), sha256: hash, created: new Date().toISOString(), signature: signature.toString('ascii') }],
-    sha256_at_last_write: hash, updated: new Date().toISOString(), status: 'provisional',
-    generator: opts.generator ?? { agent: 'unknown' }, parents: opts.parents ?? []
-  };
-  sidecar.envelope = createArtifactEnvelope({ artifact_type: 'other', canonical_bytes: `sha256:${hash}`, created_at: sidecar.updated, parents: opts.parents ?? [], attestations: sidecar.attestations.map(a => ({ method: a.method, signer: a.signer, status: 'provisional', signature: a.signature })), status: 'signed', evidence: { integrity: 'valid', signature: 'provisional', timestamp: 'none', scope: 'valid' }, generator: opts.generator, bytes: canonical });
-  await fs.writeFile(`${filePath}.provenance.json`, JSON.stringify(sidecar, null, 2), 'utf8');
-  return sidecar;
 }

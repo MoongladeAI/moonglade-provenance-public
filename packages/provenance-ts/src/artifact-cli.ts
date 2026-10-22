@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { ProvenanceEngine } from './index';
-import { processArtifact, sealWithOpenPgp, moveArtifactWithAttestation } from './artifactHook';
+import { processArtifact, moveArtifactWithAttestation } from './artifactHook';
 import { runSelfTests, printSelfTestReport } from './self-test';
 import { getArtifactBadge } from './badge';
 

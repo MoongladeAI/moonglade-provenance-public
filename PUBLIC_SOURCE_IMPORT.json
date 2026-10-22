@@ -1,17 +1,16 @@
 {
   "format": "moonglade-source-import-v1",
   "status": "remediated-release-candidate",
-  "version": "2.5.0",
-  "canonical_rule": "LF_NORMALIZED_UTF8_NFC_TEXT_EXACT_BINARY",
-  "source_commit": "e6ef65c029c1cf2da196d955a8ef6fa43062e3fb",
+  "version": "2.6.0",
+  "canonical_rule": "LF_NORMALIZED_UTF8_NFC_TEXT_EXACT_BINARY_SAFE_INT_CLAIMS",
+  "source_commit": "da3fc57a6325337c9f384ffe0ff9d25f43fe6d39",
   "repository": "https://github.com/MoongladeAI/moonglade-provenance-public",
   "publication_adjustments": [
-    "Curated single-package distribution containing @moonglade/provenance 2.5.0.",
-    "Adopted Draft -01 canonicalization profile with fatal UTF-8 decoding in text.",
-    "Closed verification defects A1-A12 and blockers B1-B9 per RECOVERY-SAD.",
-    "Excluded internal dev tooling, platform-specific hooks, and private integration modules.",
-    "Established root-only trust registry with fingerprint 5E7FA9F6C5B0A65BC23A75704FF2C2DE69C0C4A3.",
-    "Final language pass; restored TESTING.md and shortened ACKNOWLEDGMENTS.md while preserving the dedication and named influences."
+    "Curated single-package distribution containing @moonglade/provenance 2.6.0.",
+    "Aligned with draft-ottley-agentic-epistemic-provenance-03 standard.",
+    "Hardened L3 DTA Byzantine median quorum with minimum 3-probe fanout and 3000 ms drift window.",
+    "Strict IEEE 754 safe integer enforcement on claims JSON with value-based normalization.",
+    "Explicit binary extension mapping including ONNX raw byte fidelity."
   ],
   "copied_files": [
     {
@@ -51,8 +50,180 @@
       "sha256": "bb8ac48cd74acd660b9c413c7b875a2d01857e2edc4905ffd2ada81df37e169e"
     },
     {
+      "path": "dependency-audit.json",
+      "sha256": "aa6d548ee5f13c8bc4f9e10e877d5c8a9329693af8a3a3ec20f4d31cc08cd764"
+    },
+    {
+      "path": "docs/draft-ottley-agentic-epistemic-provenance-03.md",
+      "sha256": "06df0e9da26975af1500db6fe4ee09a377f25b8d3ffa11aceb9ac69719ab0e7e"
+    },
+    {
+      "path": "docs/STEWARDSHIP_EVALUATION.md",
+      "sha256": "1742f402507434f92ee955c1f780b88b443a581fffe78c9c3a33c0d9b9dd0d49"
+    },
+    {
       "path": "LICENSE",
-      "sha256": "1b29e9b72389df4b99735d249f016a6122dbec414e5bd021ed539994aca9c5b9"
+      "sha256": "d883d11a9f20fd62e055335689b869aaf411d1d6a4c801ebccde549589431af6"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "a1e97899d064a5068d19dc9bdb30a4ec75252553c8ebdcf478002d420fa0ff03"
+    },
+    {
+      "path": "package.json",
+      "sha256": "51e0fe88a55f577ea78f53956678ec62834db56402afd436ca50ee185bd3c72d"
+    },
+    {
+      "path": "packages/provenance-ts/clean-build.cjs",
+      "sha256": "1db3fbbdbb59379779ede438b263040a04743d0d2b179aec77df90b652b31157"
+    },
+    {
+      "path": "packages/provenance-ts/jest.config.js",
+      "sha256": "e0f00395cc017a0867aec4419f4595d5e6d729f623ff0fceddef539344831c8a"
+    },
+    {
+      "path": "packages/provenance-ts/LICENSE",
+      "sha256": "d883d11a9f20fd62e055335689b869aaf411d1d6a4c801ebccde549589431af6"
+    },
+    {
+      "path": "packages/provenance-ts/NOTICE.md",
+      "sha256": "0c96c893ee7fde080b4a783b6040976995d7521f539727090551f888bc30c627"
+    },
+    {
+      "path": "packages/provenance-ts/package.json",
+      "sha256": "4ccc5e2dfb558bc5f3f58a15d7c35d928e15db3a85cf0281944d0258c4b4e08d"
+    },
+    {
+      "path": "packages/provenance-ts/README.md",
+      "sha256": "538d8ffac5c5801a2f42b8d541715905dedf4578b4710b6c7f499f2b1c2d5291"
+    },
+    {
+      "path": "packages/provenance-ts/SPEC.md",
+      "sha256": "4354253515cdecd4bc00592b45925e8df8442f1c84b346514a0971288cd5d2cd"
+    },
+    {
+      "path": "packages/provenance-ts/src/artifact-cli.ts",
+      "sha256": "9487b95a94576b7313ff1c971a080e5017a88d7f6bf83f01e97a467d6f9e37ef"
+    },
+    {
+      "path": "packages/provenance-ts/src/artifactEnvelope.test.js",
+      "sha256": "80c6a73574083885899836fee522e98dad6840ee8c9b461222b8b27ba4805abc"
+    },
+    {
+      "path": "packages/provenance-ts/src/artifactEnvelope.ts",
+      "sha256": "9af4589dac6c16031138ebbc19c66f20950cb01041c45ecef1fd1baf6f0d2fd5"
+    },
+    {
+      "path": "packages/provenance-ts/src/artifactHook.test.js",
+      "sha256": "641eb2c629789d99749c2423f77d0798e67b247587750a90dd9c4a31584addc2"
+    },
+    {
+      "path": "packages/provenance-ts/src/artifactHook.ts",
+      "sha256": "7d902ec3b41a67e2da5cb7f1227a1e8cfe23b9ae8502a817de208003651c1e6c"
+    },
+    {
+      "path": "packages/provenance-ts/src/badge.test.js",
+      "sha256": "dad7ce79b7487fb167a43b2844d767bf48007e6512d1d631fd5723edb0c08ba0"
+    },
+    {
+      "path": "packages/provenance-ts/src/badge.ts",
+      "sha256": "0e5297c3f99f8d30a32dedd6bede906acf1ba9ba8f667c93043af8809898ca24"
+    },
+    {
+      "path": "packages/provenance-ts/src/binding.test.js",
+      "sha256": "481dc50f2dbd6980ba8027fbd260ba090ae4af47c22951d401ad0df4dab0b145"
+    },
+    {
+      "path": "packages/provenance-ts/src/canonical-alignment.test.js",
+      "sha256": "f5cd43e16cb2110ec467cebcbfc2299b8517bfdce8a8f91f0882837c863d5022"
+    },
+    {
+      "path": "packages/provenance-ts/src/canonical.golden.json",
+      "sha256": "f6f1562d389ad7b6569aeee627fab1a17ea601b3c74a6d08f22b6c8d82150964"
+    },
+    {
+      "path": "packages/provenance-ts/src/dta-config-guards.test.js",
+      "sha256": "c6c2313c758a0b5852619ab01b2d6abdeff6cab8968a64928540681493e8df70"
+    },
+    {
+      "path": "packages/provenance-ts/src/dta-l3-integration.test.js",
+      "sha256": "6c4ff5394c9c06189bbde8dc5303176238f8e03c816a4b425d08c3107304ad32"
+    },
+    {
+      "path": "packages/provenance-ts/src/index.test.js",
+      "sha256": "496f6b489f6666cc23b71cbc933951a9bd6e9ac8f1344fb75e35a9f21d28cb36"
+    },
+    {
+      "path": "packages/provenance-ts/src/index.ts",
+      "sha256": "62815920ca5696addd7254fd56bbfa25179cc07e90782911ccae289fc7443424"
+    },
+    {
+      "path": "packages/provenance-ts/src/mcp.test.js",
+      "sha256": "d3838c04927e75962bf3b1b2dfd47172b0b27db4d0289781587c4a2648244f49"
+    },
+    {
+      "path": "packages/provenance-ts/src/mcp.ts",
+      "sha256": "fd8af6a23c2bb7e84fc8c7ebd63729c22d609fb49f0be0cbe985d7f7238ee683"
+    },
+    {
+      "path": "packages/provenance-ts/src/merkle.golden.json",
+      "sha256": "d55ab6c16e9765305e2a26ac1d5c78e722aea19fd0f586c0b10553f6643466e3"
+    },
+    {
+      "path": "packages/provenance-ts/src/merkle.test.js",
+      "sha256": "aba9c09cde694c96bc4924ed2f7d18a20e0c7d37afc881e998cd72a32f56cc6a"
+    },
+    {
+      "path": "packages/provenance-ts/src/merkle.ts",
+      "sha256": "5f3dc8df775e4db4e7653ff833fe35c7d561c89781d73b22a85bf6f6013f697d"
+    },
+    {
+      "path": "packages/provenance-ts/src/release-security.test.js",
+      "sha256": "45b51840c660dcb1de5c1169f6f9138e40d210cb78aa76d70413bc8b2d0f5d4a"
+    },
+    {
+      "path": "packages/provenance-ts/src/self-test.test.js",
+      "sha256": "7a682069e1dfa23e747b966121034d22e313ce6b86cb5a97816caf5da39795ca"
+    },
+    {
+      "path": "packages/provenance-ts/src/self-test.ts",
+      "sha256": "09629e50fe9f4e5473774b919bf8000baea9246fea2ce3987e2631123d749258"
+    },
+    {
+      "path": "packages/provenance-ts/src/synthetic-timestamp.fixture.cjs",
+      "sha256": "48b8e63e3d89524d90b1921bd83e6c7b6b525a9edfdd79a85897ac6dc47e57e4"
+    },
+    {
+      "path": "packages/provenance-ts/src/timestamp-security.test.js",
+      "sha256": "5d68a88ebd5955a60920395187d5ab338635c3ad8753dffb5f7a989c73f87922"
+    },
+    {
+      "path": "packages/provenance-ts/src/timestamp.test.js",
+      "sha256": "4f193bba915191dfe07379b8635e741a6f54e3a01b3ff8622505802c15565f6e"
+    },
+    {
+      "path": "packages/provenance-ts/src/timestamp.ts",
+      "sha256": "a96cad6755c9fefbcd4acaed01bcde4ca759ea4adb1a6f119a69ac061abe76c5"
+    },
+    {
+      "path": "packages/provenance-ts/TIMESTAMP.md",
+      "sha256": "1ee1d381c3d5a6242ea33c1441f69d83218feaa2c9694362b29dc587f2309e98"
+    },
+    {
+      "path": "packages/provenance-ts/trust/README.md",
+      "sha256": "338eec30b091e0c843a95c82ad37c0fc85509fad61ad0326d0632e4ad87fec24"
+    },
+    {
+      "path": "packages/provenance-ts/trust/registry.json",
+      "sha256": "03bd8a966855dcfb2313f98acccb8d8894b00daa3f6b11bf3db7bbd894f871b7"
+    },
+    {
+      "path": "packages/provenance-ts/trust/root-public.asc",
+      "sha256": "8332bd65a613ad80eb802a4418e4d52a2fd5f4208bc449fd0ad67031e93bd46e"
+    },
+    {
+      "path": "packages/provenance-ts/tsconfig.json",
+      "sha256": "67e1e1d487c30bbd6edc6941475d267805b00a75c20d43d9ceaf2aa8e77706b1"
     },
     {
       "path": "README.md",
@@ -67,160 +238,28 @@
       "sha256": "5ab753e19e9ee0ae6532357effc47a4d18b12bb2f48da1651d19d6ed044455d6"
     },
     {
-      "path": "dependency-audit.json",
-      "sha256": "60360b07594b1de7f4cb24998d395f59869d3e265829dd89820f3f0727aee9ec"
+      "path": "vectors/canon-legacy/generate_fixtures.py",
+      "sha256": "7cfb2915ab0daf280db523b37c41e2e2fb6a7eccc4589f7707442f60c0c1b8f9"
     },
     {
-      "path": "docs/STEWARDSHIP_EVALUATION.md",
-      "sha256": "1742f402507434f92ee955c1f780b88b443a581fffe78c9c3a33c0d9b9dd0d49"
+      "path": "vectors/canon-legacy/js_profiles.mjs",
+      "sha256": "287aa853bba5b64dee241f2774f34a19bb30a67614cd760a2dc8353598aff42d"
     },
     {
-      "path": "package-lock.json",
-      "sha256": "a1e97899d064a5068d19dc9bdb30a4ec75252553c8ebdcf478002d420fa0ff03"
+      "path": "vectors/canon-legacy/legacy-text-profiles.json",
+      "sha256": "74677b67b80829c02b198c68b9aa36109ff99e51141c074fe0d52c96f6e07c77"
     },
     {
-      "path": "package.json",
-      "sha256": "82799e95ecadf83a279a1e34868d6b7210e0a1b7582d5bf3bd8df154df4fe692"
+      "path": "vectors/canonical.golden.json",
+      "sha256": "f6f1562d389ad7b6569aeee627fab1a17ea601b3c74a6d08f22b6c8d82150964"
     },
     {
-      "path": "packages/provenance-ts/LICENSE",
-      "sha256": "1b29e9b72389df4b99735d249f016a6122dbec414e5bd021ed539994aca9c5b9"
+      "path": "vectors/lightcraft/install-unavailable.json",
+      "sha256": "671fd010fa639c16d30b882ffa45c1bdd6bef4cef64b755973540eb68475b81f"
     },
     {
-      "path": "packages/provenance-ts/NOTICE.md",
-      "sha256": "0c96c893ee7fde080b4a783b6040976995d7521f539727090551f888bc30c627"
-    },
-    {
-      "path": "packages/provenance-ts/README.md",
-      "sha256": "538d8ffac5c5801a2f42b8d541715905dedf4578b4710b6c7f499f2b1c2d5291"
-    },
-    {
-      "path": "packages/provenance-ts/SPEC.md",
-      "sha256": "c573cb4d95180d99afefb1bfd89a551116cfa4a31bc98876056759d2868fa0e5"
-    },
-    {
-      "path": "packages/provenance-ts/TIMESTAMP.md",
-      "sha256": "1ee1d381c3d5a6242ea33c1441f69d83218feaa2c9694362b29dc587f2309e98"
-    },
-    {
-      "path": "packages/provenance-ts/clean-build.cjs",
-      "sha256": "16edd7fa311ee05f38bb5d606cb192b50bce33b7ce8fc410b3826f657ba525bc"
-    },
-    {
-      "path": "packages/provenance-ts/jest.config.js",
-      "sha256": "d57e9a039813d4fb6562e43d344c4821b316bd4ff3d313ea03343dd0e7eb05d0"
-    },
-    {
-      "path": "packages/provenance-ts/package.json",
-      "sha256": "9caa99e8ab74b1fa2a2f9ef9efb3ca2d7acc0bd185be45049ceb1329c24bfa97"
-    },
-    {
-      "path": "packages/provenance-ts/src/artifact-cli.ts",
-      "sha256": "cb2f90ebccc437dadf4d30017ae31cb21b0b9e7ce585599f53c6a6df6481d034"
-    },
-    {
-      "path": "packages/provenance-ts/src/artifactEnvelope.test.js",
-      "sha256": "139f09e89cd2b3caf03d5cf81115e2680164561c521addfc47a51160dc3d1f5a"
-    },
-    {
-      "path": "packages/provenance-ts/src/artifactEnvelope.ts",
-      "sha256": "fabe0b9009a9e80467dc3c3b281f136516d72249f50eea94f5abb8ab430a2da2"
-    },
-    {
-      "path": "packages/provenance-ts/src/artifactHook.test.js",
-      "sha256": "77273f10415bb8fe46f7d483c1d227dbdabb1c2feda66124701bf73f28339a59"
-    },
-    {
-      "path": "packages/provenance-ts/src/artifactHook.ts",
-      "sha256": "a505ec7badb11b2addff891f090a1b2c35ebd43556af8686e3106bfba8fa33b2"
-    },
-    {
-      "path": "packages/provenance-ts/src/badge.test.js",
-      "sha256": "22d8026d2b0fc4eb9257e391a11814100d38d05995ecac03039f333e50614f1f"
-    },
-    {
-      "path": "packages/provenance-ts/src/badge.ts",
-      "sha256": "496c04a50a7522f9fc9f6dbda5176f5cb3e7f407d759d8298e57a245ce7fa5dc"
-    },
-    {
-      "path": "packages/provenance-ts/src/binding.test.js",
-      "sha256": "481dc50f2dbd6980ba8027fbd260ba090ae4af47c22951d401ad0df4dab0b145"
-    },
-    {
-      "path": "packages/provenance-ts/src/canonical.golden.json",
-      "sha256": "b90511cbeb4d0524ed89d1f3fd17295f2c47c2ef28be658f9a78608570631c0b"
-    },
-    {
-      "path": "packages/provenance-ts/src/index.test.js",
-      "sha256": "f3fcdd1053d3f39142b438b7151f8f47c007a2b0ab215e6441e3cb0a12d99695"
-    },
-    {
-      "path": "packages/provenance-ts/src/index.ts",
-      "sha256": "b03c309a4a2bab87663368d4ff033d592cf2b83c1eddc85ab4455ba9f082c664"
-    },
-    {
-      "path": "packages/provenance-ts/src/mcp.test.js",
-      "sha256": "1ba1e68d8286375e561125ceb1951ecd5049f36d9ee4f3e6eceed41692669f60"
-    },
-    {
-      "path": "packages/provenance-ts/src/mcp.ts",
-      "sha256": "8e843ba0666631308feb863b63214058d94f79b75de6c0febdcc1ce20a2a49f6"
-    },
-    {
-      "path": "packages/provenance-ts/src/merkle.golden.json",
+      "path": "vectors/merkle.golden.json",
       "sha256": "d55ab6c16e9765305e2a26ac1d5c78e722aea19fd0f586c0b10553f6643466e3"
-    },
-    {
-      "path": "packages/provenance-ts/src/merkle.test.js",
-      "sha256": "5de44e5ae1ca206d05e65c885c59d5320295a4be5020563da2fcd2d3d157093e"
-    },
-    {
-      "path": "packages/provenance-ts/src/merkle.ts",
-      "sha256": "f165675c7e9a05291f13ce981ddc02510b40acce132f9a8b1f1f5b9e2f07ff3c"
-    },
-    {
-      "path": "packages/provenance-ts/src/release-security.test.js",
-      "sha256": "3ede79c061047dd064db50dad051fddcc23e4be5c4fd8f7f48851afa9fada3c7"
-    },
-    {
-      "path": "packages/provenance-ts/src/self-test.test.js",
-      "sha256": "96d3281ba2f36835efaba5a72427c69b2ade964167f3912a577146c6ecf31c80"
-    },
-    {
-      "path": "packages/provenance-ts/src/self-test.ts",
-      "sha256": "7ed6199b72f149f889c213ddd967c2c83240d36db8b757d2046c5f16219ace2a"
-    },
-    {
-      "path": "packages/provenance-ts/src/synthetic-timestamp.fixture.cjs",
-      "sha256": "ae5b19509df2e9dd9e3677820957cf7d2775f6c0f5ce9495f8a55d67e2831722"
-    },
-    {
-      "path": "packages/provenance-ts/src/timestamp-security.test.js",
-      "sha256": "d02ffbac412644c3844535c8208f12f12a30f120578c3e216f80817c9ee03b04"
-    },
-    {
-      "path": "packages/provenance-ts/src/timestamp.test.js",
-      "sha256": "83ea28615046d22fbb3f2676ec33a2a5573f27a22c5a1ef2afc3d408353c253f"
-    },
-    {
-      "path": "packages/provenance-ts/src/timestamp.ts",
-      "sha256": "6f2e2c54f107c4247e34d326c30a7933da49bfce80025ef19f1ffe669f0841d5"
-    },
-    {
-      "path": "packages/provenance-ts/trust/README.md",
-      "sha256": "338eec30b091e0c843a95c82ad37c0fc85509fad61ad0326d0632e4ad87fec24"
-    },
-    {
-      "path": "packages/provenance-ts/trust/registry.json",
-      "sha256": "03bd8a966855dcfb2313f98acccb8d8894b00daa3f6b11bf3db7bbd894f871b7"
-    },
-    {
-      "path": "packages/provenance-ts/trust/root-public.asc",
-      "sha256": "e7dd380514d03dabdeae6c8b130dc07b0c7308ebd0db8afc4b5944cd1c730622"
-    },
-    {
-      "path": "packages/provenance-ts/tsconfig.json",
-      "sha256": "28e10b63e23ace6d88a0dc627a214b468bba69b4c982d69541cf349fc41f9282"
     }
   ],
   "original_import_source_commit": "044865e",

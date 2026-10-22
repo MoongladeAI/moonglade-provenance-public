@@ -16,7 +16,13 @@ function edit(fn) { const s = JSON.parse(fs.readFileSync(file + '.provenance.jso
 function cli(args, env = {}) { return cp.spawnSync(process.execPath, [path.resolve(__dirname, '../dist/artifact-cli.js'), ...args], { cwd: dir, encoding: 'utf8', env: { ...process.env, MOONGLADE_PRIVATE_KEY_PEM: '', MOONGLADE_PUBLIC_KEY_PEM: '', MOONGLADE_ROOT: dir, ...env } }); }
 
 describe('canonical bytes and strict JSON', () => {
-  test.each(['file.md', 'file.unknown', 'file.onnx'])('invalid UTF8 is rejected for %s', name => {
+  test.each(require('../../../vectors/canonical.golden.json').bytes)('shared canonical vector $name', vector => {
+    const raw = Buffer.from(vector.input_hex, 'hex');
+    if (vector.error) expect(() => E.canonicalizeBytes(raw, vector.filename)).toThrow();
+    else expect(E.canonicalizeBytes(raw, vector.filename).toString('hex')).toBe(vector.output_hex);
+  });
+  // .onnx is a known binary extension (draft -03 section 2.1): it is byte exact, see canonical-alignment.test.js
+  test.each(['file.md', 'file.unknown'])('invalid UTF8 is rejected for %s', name => {
     for (const byte of [0xff, 0xfe]) expect(() => E.canonicalizeBytes(Buffer.from([97, byte, 98]), name)).toThrow();
   });
   test('known binary is byte exact', () => { const raw = Buffer.from([0xff, 13, 10, 0]); expect(E.canonicalizeBytes(raw, 'file.png')).toEqual(raw); });
@@ -53,7 +59,7 @@ describe('badges and real CLI', () => {
   test.each([{}, [], 'x', null, { sha256_at_last_write: '0'.repeat(64) }])('malformed sidecar %# never sealed', async sidecar => { fs.writeFileSync(file + '.provenance.json', JSON.stringify(sidecar)); expect((await getArtifactBadge(file)).status).not.toBe('SEALED'); });
   test('keyless matching hash is amber HASH-ONLY; valid key is SEALED', async () => { await seal(); const badge = await getArtifactBadge(file); expect(badge.status).toBe('HASH_ONLY'); expect(badge.colorHex).not.toBe('#2ea44f'); expect((await getArtifactBadge(file, { publicKeyPem: keys.publicKey })).status).toBe('SEALED'); });
   test('badge required scope fails', async () => { await seal(); expect((await getArtifactBadge(file, { publicKeyPem: keys.publicKey, requiredScope: 'wrong' })).status).toBe('INVALID_SIGNATURE'); });
-  test('help and version succeed', () => { expect(cli(['--help']).status).toBe(0); expect(cli(['--version']).stdout.trim()).toBe('2.5.0'); });
+  test('help and version succeed', () => { expect(cli(['--help']).status).toBe(0); expect(cli(['--version']).stdout.trim()).toBe(require('../package.json').version); });
   test('verify exits nonzero without key, succeeds with key, rejects mutation and required signer', async () => { await seal(); expect(cli(['verify', file]).status).toBe(1); expect(cli(['verify', file], { MOONGLADE_PUBLIC_KEY_PEM: keys.publicKey }).status).toBe(0); expect(cli(['verify', file], { MOONGLADE_PUBLIC_KEY_PEM: keys.publicKey, MOONGLADE_REQUIRED_SIGNERS: 'missing' }).status).toBe(1); fs.appendFileSync(file, 'mutated'); expect(cli(['verify', file], { MOONGLADE_PUBLIC_KEY_PEM: keys.publicKey }).status).toBe(1); });
   test('refused seal exits nonzero', () => { const secret = path.join(dir, 'secret.pem'); fs.writeFileSync(secret, 'synthetic'); expect(cli(['seal-provisional', secret], { MOONGLADE_PRIVATE_KEY_PEM: keys.privateKey, MOONGLADE_SIGNER: 'synthetic' }).status).toBe(1); });
   test('moves refuse destination files and orphan sidecars without data loss', async () => { const destination = path.join(dir, 'destination.md'); fs.writeFileSync(destination, 'existing'); await expect(moveArtifactWithAttestation(file, destination)).rejects.toThrow(/exists/); expect(fs.readFileSync(destination, 'utf8')).toBe('existing'); fs.unlinkSync(destination); fs.writeFileSync(destination + '.provenance.json', '{}'); await expect(moveArtifactWithAttestation(file, destination)).rejects.toThrow(/exists/); expect(fs.readFileSync(file, 'utf8')).toBe('original\n'); });
@@ -93,9 +99,16 @@ test('stdio MCP retains request IDs and advertises only the read-only surface', 
     '{invalid json'
   ].join('\n') + '\n');
   const messages = (await result).trim().split('\n').map(JSON.parse);
-  expect(messages.find(r => r.id === 1).result.serverInfo.version).toBe('2.5.0');
+  expect(messages.find(r => r.id === 1).result.serverInfo.version).toBe(require('../package.json').version);
   expect(messages.find(r => r.id === 2).result.tools.map(t => t.name).sort()).toEqual(['assert_gate_status', 'audit_vault_merkle_root', 'verify_artifact_provenance']);
   expect(messages.find(r => r.id === 'bad-args').result.isError).toBe(true);
   expect(messages.find(r => r.id === 'removed').result.isError).toBe(true);
   expect(messages.find(r => r.id === null).error.code).toBe(-32700);
+});
+
+
+describe('shared Draft -03 claims corpus',()=>{
+ test.each(require('../../../vectors/canonical.golden.json').json)('$name',c=>{
+  expect(canonicalizeJson(JSON.parse(c.input_json))).toBe(c.output);
+ });
 });
