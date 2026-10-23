@@ -3,14 +3,15 @@
   "status": "remediated-release-candidate",
   "version": "2.6.0",
   "canonical_rule": "LF_NORMALIZED_UTF8_NFC_TEXT_EXACT_BINARY_SAFE_INT_CLAIMS",
-  "source_commit": "da3fc57a6325337c9f384ffe0ff9d25f43fe6d39",
+  "source_commit": "98e1b39893d5a5607db79c29415441da092d6e67",
   "repository": "https://github.com/MoongladeAI/moonglade-provenance-public",
   "publication_adjustments": [
     "Curated single-package distribution containing @moonglade/provenance 2.6.0.",
     "Aligned with draft-ottley-agentic-epistemic-provenance-03 standard.",
     "Hardened L3 DTA Byzantine median quorum with minimum 3-probe fanout and 3000 ms drift window.",
     "Strict IEEE 754 safe integer enforcement on claims JSON with value-based normalization.",
-    "Explicit binary extension mapping including ONNX raw byte fidelity."
+    "Explicit binary extension mapping including ONNX raw byte fidelity.",
+    "Migrated test suite to native Node.js 22/24 test runner (node:test + node:assert/strict), eliminating Jest, Babel, Istanbul, and 314 transitive dev dependencies."
   ],
   "copied_files": [
     {
@@ -91,7 +92,7 @@
     },
     {
       "path": "packages/provenance-ts/package.json",
-      "sha256": "4ccc5e2dfb558bc5f3f58a15d7c35d928e15db3a85cf0281944d0258c4b4e08d"
+      "sha256": "9916c8c18b5dbae05e7acf9c756c9c71b99344eba33c732cee7eee1e1390c92a"
     },
     {
       "path": "packages/provenance-ts/README.md",
@@ -204,6 +205,10 @@
     {
       "path": "packages/provenance-ts/src/timestamp.ts",
       "sha256": "a96cad6755c9fefbcd4acaed01bcde4ca759ea4adb1a6f119a69ac061abe76c5"
+    },
+    {
+      "path": "packages/provenance-ts/test-harness.cjs",
+      "sha256": "7db6714f541aadd10c6a3a77665b57f05d7b8d546c328c953ed63b210172e0f5"
     },
     {
       "path": "packages/provenance-ts/TIMESTAMP.md",

@@ -1,6 +1,6 @@
 {
   "name": "@moonglade/provenance",
-  "version": "2.6.0",
+  "version": "2.5.0",
   "description": "Local-first cryptographic proof for markdown files and agentic AI memory substrates.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,10 +11,10 @@
   },
   "scripts": {
     "build": "node clean-build.cjs && tsc",
-    "test": "npm run build && jest --runInBand",
+    "test": "npm run build && node -r ./test-harness.cjs --test src/*.test.js",
     "self-test": "node dist/artifact-cli.js test",
     "prepublishOnly": "npm run build",
-    "test:only": "jest"
+    "test:only": "node -r ./test-harness.cjs --test src/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -49,9 +49,7 @@
     "url": "https://github.com/MoongladeAI/moonglade-provenance-public/issues"
   },
   "devDependencies": {
-    "@types/jest": "30.0.0",
     "@types/node": "22.20.4",
-    "jest": "30.5.2",
     "typescript": "5.9.3"
   },
   "dependencies": {
