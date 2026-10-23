@@ -1,4 +1,4 @@
-# @moonglade/provenance 2.5.0
+# @moonglade/provenance 2.6.0
 
 Ed25519 signatures, canonical file hashes, RFC 3161 timestamp checks and Merkle inclusion proofs for Node 22 and 24.
 

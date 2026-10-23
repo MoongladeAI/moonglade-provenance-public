@@ -1,8 +1,8 @@
-# Moonglade provenance 2.5.0 release candidate
+# Moonglade provenance 2.6.0 release candidate
 
 Moonglade provenance signs files and checks their integrity. It combines Ed25519 signatures, RFC 3161 timestamp verification and Merkle inclusion proofs in a local Node.js library, CLI and read-only MCP server.
 
-This repository contains [@moonglade/provenance](packages/provenance-ts/README.md). It is the staging repository for the 2.5.0 candidate. Production publication still requires the release audit and human signing gates to close.
+This repository contains [@moonglade/provenance](packages/provenance-ts/README.md). It is the staging repository for the 2.6.0 candidate. Production publication still requires the release audit and human signing gates to close.
 
 ## Build and test
 

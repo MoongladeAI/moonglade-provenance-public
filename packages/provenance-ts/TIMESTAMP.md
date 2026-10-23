@@ -1,4 +1,4 @@
-# Timestamp verification in 2.5.0
+# Timestamp verification in 2.6.0
 
 ## Token verification
 

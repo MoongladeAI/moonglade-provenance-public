@@ -1,4 +1,4 @@
-# Testing the 2.5.0 candidate
+# Testing the 2.6.0 candidate
 
 ## Run the suite
 

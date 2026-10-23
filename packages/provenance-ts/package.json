@@ -1,6 +1,6 @@
 {
   "name": "@moonglade/provenance",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Local-first cryptographic proof for markdown files and agentic AI memory substrates.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
